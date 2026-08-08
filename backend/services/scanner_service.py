@@ -30,6 +30,16 @@ SUPPORTED_EXTENSIONS = {
     ".md": "markdown",
 }
 
+# Extensionless files that should be scanned
+EXTENSIONLESS_FILES = {
+    "readme": "markdown",
+    "license": "markdown",
+    "makefile": "makefile",
+    "dockerfile": "dockerfile",
+    "contributing": "markdown",
+    "changelog": "markdown",
+}
+
 
 class ScannerService:
     def scan_repository(self, root_path: str) -> Dict[str, Any]:
@@ -51,19 +61,25 @@ class ScannerService:
                     continue
                 extension = os.path.splitext(filename)[1].lower()
                 if extension not in SUPPORTED_EXTENSIONS:
-                    continue
+                    # Handle extensionless files (README, LICENSE, Makefile, etc.)
+                    if filename.lower() in EXTENSIONLESS_FILES:
+                        language = EXTENSIONLESS_FILES[filename.lower()]
+                    else:
+                        continue
+                else:
+                    language = SUPPORTED_EXTENSIONS[extension]
                 file_path = os.path.join(current_root, filename)
                 relative_path = os.path.relpath(file_path, root_path)
                 files.append(
                     {
                         "path": relative_path,
                         "name": filename,
-                        "language": SUPPORTED_EXTENSIONS[extension],
+                        "language": language,
                         "size": os.path.getsize(file_path),
                     }
                 )
         return files
-    
+
     def read_file_content(self, root_path: str, file_path: str) -> str:
         """Read the content of a file."""
         try:
@@ -72,30 +88,30 @@ class ScannerService:
                 return f.read()
         except Exception:
             return ""
-    
+
     def scan_repository_with_content(self, root_path: str, max_file_size: int = 100000) -> Dict[str, Any]:
         """
         Scan repository and include file contents.
-        
+
         Args:
             root_path: Root directory of the repository
             max_file_size: Maximum file size to read (in bytes), default 100KB
         """
         files = self._collect_files(root_path)
         languages = self._detect_languages(files)
-        
+
         # Read file contents
         files_with_content = []
         for file_info in files:
             file_content = ""
             if file_info["size"] <= max_file_size:
                 file_content = self.read_file_content(root_path, file_info["path"])
-            
+
             files_with_content.append({
                 **file_info,
                 "content": file_content,
             })
-        
+
         return {
             "files": files_with_content,
             "count": len(files_with_content),

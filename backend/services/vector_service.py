@@ -3,6 +3,8 @@ import json
 import uuid
 from typing import Any, Dict, List, Optional
 
+from config import get_settings
+
 
 class VectorService:
     """Vector database layer for Phase 2 RAG system."""
@@ -10,14 +12,20 @@ class VectorService:
     _instance = None
     _initialized = False
     
-    def __new__(cls, persist_directory: str = "cache/vector_db"):
+    def __new__(cls, persist_directory: str = None):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
     
-    def __init__(self, persist_directory: str = "cache/vector_db"):
+    def __init__(self, persist_directory: str = None):
         if not VectorService._initialized:
-            self.persist_directory = persist_directory
+            # Use central config if no persist_directory provided
+            if persist_directory is None:
+                settings = get_settings()
+                self.persist_directory = settings.VECTOR_DB_PATH
+            else:
+                self.persist_directory = persist_directory
+            
             self.client = None
             self.collection = None
             self._initialize()

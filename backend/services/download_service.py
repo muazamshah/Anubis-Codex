@@ -4,13 +4,15 @@ import tempfile
 from typing import Optional
 
 from github import Github
+from config import get_settings
 
 
 class DownloadService:
     def __init__(self) -> None:
-        self.token = os.getenv("GITHUB_TOKEN")
+        settings = get_settings()
+        self.token = settings.GITHUB_TOKEN
         self.github_client = Github(self.token) if self.token else None
-        self.cache_dir = os.path.join(tempfile.gettempdir(), "anubis-codex-cache")
+        self.cache_dir = settings.CACHE_DIR
         os.makedirs(self.cache_dir, exist_ok=True)
 
     def get_cache_path(self, owner: str, repo: str) -> str:

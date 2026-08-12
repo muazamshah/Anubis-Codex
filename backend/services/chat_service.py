@@ -12,6 +12,7 @@ from services.streaming_service import StreamingService
 from services.session_service import SessionService
 from services.retrieval_service import RetrievalService
 from services.embedding_service import EmbeddingService
+from config import get_settings
 
 
 class ChatService:
@@ -29,11 +30,17 @@ class ChatService:
         self.embedding_service = None
         self.vector_service = None
         
-        # LLM configuration
-        self.llm_provider = os.getenv("LLM_PROVIDER", "openrouter")
-        self.openrouter_api_key = os.getenv("OPENROUTER_API_KEY", "")
-        self.openai_api_key = os.getenv("OPENAI_API_KEY", "")
-        self.llm_model = os.getenv("LLM_MODEL", "openai/gpt-3.5-turbo")
+        # Load configuration from central config
+        settings = get_settings()
+        llm_config = settings.get_llm_config()
+        
+        self.llm_provider = llm_config["provider"]
+        self.openrouter_api_key = llm_config.get("api_key") if llm_config["provider"] == "openrouter" else None
+        self.openai_api_key = llm_config.get("api_key") if llm_config["provider"] == "openai" else None
+        self.llm_model = llm_config["model"]
+        self.llm_max_tokens = llm_config["max_tokens"]
+        self.llm_temperature = llm_config["temperature"]
+        self.llm_timeout = llm_config["timeout"]
     
     def _initialize_services(self, repository_id: str):
         """Initialize services for a repository."""
@@ -280,9 +287,10 @@ class ChatService:
         """Call OpenRouter API."""
         try:
             import requests
+            settings = get_settings()
             
             response = requests.post(
-                "https://openrouter.ai/api/v1/chat/completions",
+                settings.OPENROUTER_API_URL,
                 headers={
                     "Authorization": f"Bearer {self.openrouter_api_key}",
                     "Content-Type": "application/json"
@@ -292,10 +300,10 @@ class ChatService:
                     "messages": [
                         {"role": "user", "content": prompt}
                     ],
-                    "max_tokens": 1000,
-                    "temperature": 0.7
+                    "max_tokens": self.llm_max_tokens,
+                    "temperature": self.llm_temperature
                 },
-                timeout=30
+                timeout=self.llm_timeout
             )
             
             if response.status_code == 200:
@@ -310,9 +318,10 @@ class ChatService:
         """Call OpenAI API."""
         try:
             import requests
+            settings = get_settings()
             
             response = requests.post(
-                "https://api.openai.com/v1/chat/completions",
+                settings.OPENAI_API_URL,
                 headers={
                     "Authorization": f"Bearer {self.openai_api_key}",
                     "Content-Type": "application/json"
@@ -322,10 +331,10 @@ class ChatService:
                     "messages": [
                         {"role": "user", "content": prompt}
                     ],
-                    "max_tokens": 1000,
-                    "temperature": 0.7
+                    "max_tokens": self.llm_max_tokens,
+                    "temperature": self.llm_temperature
                 },
-                timeout=30
+                timeout=self.llm_timeout
             )
             
             if response.status_code == 200:
@@ -355,4 +364,5 @@ Please configure an API key to enable the full chat experience.
     
     def is_available(self) -> bool:
         """Check if chat service is available."""
-        return bool(self.openrouter_api_key or self.openai_api_key)
+        settings = get_settings()
+        return bool(settings.OPENROUTER_API_KEY or settings.OPENAI_API_KEY)

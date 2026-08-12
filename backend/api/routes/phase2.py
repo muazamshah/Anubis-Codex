@@ -8,6 +8,7 @@ from services.chunk_service import ChunkService
 from services.embedding_service import EmbeddingService
 from services.retrieval_service import RetrievalService
 from services.vector_service import VectorService
+from config import validate_config
 
 router = APIRouter(prefix="/api", tags=["phase2"])
 
@@ -210,3 +211,19 @@ def clear_vector_db() -> Dict[str, Any]:
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Vector database clear failed: {str(e)}")
+
+
+@router.get("/config/status")
+def get_config_status() -> Dict[str, Any]:
+    """
+    Get configuration status.
+    
+    Returns the status of all APIs and services without exposing actual API keys.
+    """
+    try:
+        return validate_config()
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }

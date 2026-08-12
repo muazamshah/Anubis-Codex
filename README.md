@@ -25,8 +25,8 @@ AI-powered GitHub Repository Intelligence Assistant with RAG (Retrieval-Augmente
 - **Vector Service**: Stores and searches embeddings using ChromaDB
 - **Chat Service**: Handles AI conversations with OpenRouter/OpenAI
 
-### Frontend (React + Tailwind CSS)
-- Modern, responsive UI with dark/light mode
+### Frontend (React + Vite + Custom CSS)
+- Modern, responsive UI with a custom plain-CSS design system (no framework)
 - Real-time streaming chat interface
 - File preview with syntax highlighting
 - Session management and history
@@ -271,7 +271,7 @@ anubis-codex/
 │   │   └── styles.css
 │   ├── package.json
 │   ├── vite.config.js
-│   └── tailwind.config.js
+│   └── postcss.config.js
 └── README.md
 ```
 

@@ -9,10 +9,13 @@ try:
 except Exception:  # pragma: no cover
     Github = None
 
+from config import get_settings
+
 
 class RepositoryAnalyzerService:
     def __init__(self) -> None:
-        self.token = os.getenv("GITHUB_TOKEN")
+        settings = get_settings()
+        self.token = settings.GITHUB_TOKEN
         self.client = Github(self.token) if self.token and Github is not None else None
 
     def parse_url(self, url: str) -> Dict[str, Any]:

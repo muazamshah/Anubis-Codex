@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from services.chat_service import ChatService
 from services.memory_service import MemoryService
 from services.session_service import SessionService
+from config import validate_config
 
 router = APIRouter(prefix="/api", tags=["phase3"])
 
@@ -177,6 +178,22 @@ def get_chat_status() -> Dict[str, Any]:
             "sessions": session_stats
         }
     
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }
+
+
+@router.get("/config/status")
+def get_config_status() -> Dict[str, Any]:
+    """
+    Get configuration status.
+    
+    Returns the status of all APIs and services without exposing actual API keys.
+    """
+    try:
+        return validate_config()
     except Exception as e:
         return {
             "status": "error",

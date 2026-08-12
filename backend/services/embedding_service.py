@@ -2,6 +2,8 @@ from typing import List, Optional
 import os
 import json
 
+from config import get_settings
+
 
 class EmbeddingService:
     """Embedding engine for Phase 2 RAG system."""
@@ -9,14 +11,20 @@ class EmbeddingService:
     _instance = None
     _initialized = False
     
-    def __new__(cls, model_name: str = "sentence-transformers/all-MiniLM-L6-v2"):
+    def __new__(cls, model_name: str = None):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
     
-    def __init__(self, model_name: str = "sentence-transformers/all-MiniLM-L6-v2"):
+    def __init__(self, model_name: str = None):
         if not EmbeddingService._initialized:
-            self.model_name = model_name
+            # Use central config if no model_name provided
+            if model_name is None:
+                settings = get_settings()
+                self.model_name = settings.EMBEDDING_MODEL_NAME
+            else:
+                self.model_name = model_name
+            
             self.model = None
             self._load_model()
             EmbeddingService._initialized = True

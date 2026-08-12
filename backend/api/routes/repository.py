@@ -13,6 +13,7 @@ from services.chunk_service import ChunkService
 from services.embedding_service import EmbeddingService
 from services.vector_service import VectorService
 from services.cache_service import CacheService
+from config import validate_config
 
 router = APIRouter(prefix="/api", tags=["repository"])
 
@@ -270,3 +271,19 @@ def repository_chat(payload: RepositoryChatRequest) -> Dict[str, Any]:
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Repository chat failed: {str(e)}")
+
+
+@router.get("/config/status")
+def get_config_status() -> Dict[str, Any]:
+    """
+    Get configuration status.
+    
+    Returns the status of all APIs and services without exposing actual API keys.
+    """
+    try:
+        return validate_config()
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }

@@ -7,6 +7,7 @@ import {
   Search,
   X,
 } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 import Header from './components/Header';
 import LandingScreen from './components/LandingScreen';
 import AnalysisProgress from './components/AnalysisProgress';
@@ -561,9 +562,9 @@ function App() {
           </div>
         </div>
       )}
+      <Analytics />
     </div>
   );
 }
 
 export default App;
-
